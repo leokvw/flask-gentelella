@@ -1,0 +1,44 @@
+{% extends "base_site.html" %}
+
+{% block title %} 异常提醒 {% endblock title %}
+
+{% block stylesheets %}
+    {{ super() }}
+{% endblock stylesheets %}
+{% block content %}
+    <div class="right_col" role="main">
+        <div class="">
+            <div class="col-md-12">
+                <div class="x_panel">
+                    <div class="x_title">
+                        <h2>异常提醒
+                        </h2>
+                        <div class="clearfix"></div>
+                    </div>
+                    <div class="x_content">
+                        <ul class="list-unstyled msg_list">
+                            <li>
+                                <a>
+                                    <span class="image"><img src="/static/images/img.jpg" alt="img"/> </span>
+                                    <span class="time">3 mins ago</span>
+                                    <span> 未知人脸，且尾随 </span>
+                                </a>
+                            </li>
+                            <li>
+                                <a>
+                                    <span class="image"><img src="/static/images/img.jpg" alt="img"/> </span>
+                                    <span class="time">3 mins ago</span>
+                                    <span> 多次停留 </span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock content %}
+
+{% block javascripts %}
+    {{ super() }}
+{% endblock javascripts %}

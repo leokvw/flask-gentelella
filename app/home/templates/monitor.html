@@ -1,0 +1,68 @@
+{% extends "base_site.html" %}
+
+{% block title %} 实时监控 {% endblock title %}
+
+{% block stylesheets %}
+    {{ super() }}
+{% endblock stylesheets %}
+
+{% block content %}
+    <div class="right_col" role="main">
+        <div class="">
+            <div class="row">
+                <div class="animated flipInY col-lg-3 col-md-3 col-sm-6 col-xs-12">
+                    <div class="tile-stats">
+                        <div class="icon"><i class="fa fa-user-plus"></i>
+                        </div>
+                        <div class="count">179</div>
+
+                        <h3>新增用户</h3>
+                        <p>自上次查看</p>
+                    </div>
+                </div>
+                <div class="animated flipInY col-lg-3 col-md-3 col-sm-6 col-xs-12">
+                    <div class="tile-stats">
+                        <div class="icon"><i class="fa fa-user"></i>
+                        </div>
+                        <div class="count">19</div>
+
+                        <h3>新增访客</h3>
+                        <p>自上次查看</p>
+                    </div>
+                </div>
+                <div class="animated flipInY col-lg-3 col-md-3 col-sm-6 col-xs-12">
+                    <div class="tile-stats">
+                        <div class="icon"><i class="fa fa-map-signs"></i>
+                        </div>
+                        <div class="count">300</div>
+
+                        <h3>新增进出</h3>
+                        <p>自上次查看</p>
+                    </div>
+                </div>
+
+                <div class="animated flipInY col-lg-3 col-md-3 col-sm-6 col-xs-12">
+                    <div class="tile-stats">
+                        <div class="icon"><i class="fa fa-exclamation"></i>
+                        </div>
+                        <div class="count">2</div>
+
+                        <h3>可疑记录</h3>
+                        <p>自上次查看</p>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-12 col-md-12 col-lg-12">
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d5393.763250729998!2d120.04306700823464!3d30.229065529966533!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sen!2shk!4v1558319562538!5m2!1sen!2shk"
+                            width="990" height="600" frameborder="2" style="border:0" allowfullscreen></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+{% endblock content %}
+
+{% block javascripts %}
+    {{ super() }}
+{% endblock javascripts %}
