@@ -1,17 +1,20 @@
 from flask import Flask, url_for
 from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
+from flask_bootstrap import Bootstrap
 from importlib import import_module
 from logging import basicConfig, DEBUG, getLogger, StreamHandler
 from os import path
 
 db = SQLAlchemy()
 login_manager = LoginManager()
+bootstrap = Bootstrap()
 
 
 def register_extensions(app):
     db.init_app(app)
     login_manager.init_app(app)
+    bootstrap.init_app(app)
 
 
 def register_blueprints(app):
