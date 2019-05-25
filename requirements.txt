@@ -1,3 +1,5 @@
+wtforms
+sqlalchemy
 bcrypt
 flask
 flask_login
