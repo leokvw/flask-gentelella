@@ -81,7 +81,7 @@ def shutdown():
     func()
     return 'Server shutting down...'
 
-## Errors
+# Errors
 
 
 @login_manager.unauthorized_handler

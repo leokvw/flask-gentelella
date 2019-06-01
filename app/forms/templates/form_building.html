@@ -1,0 +1,29 @@
+{% import "bootstrap/wtf.html" as wtf %}
+{% extends "base_site.html" %}
+{% block title %} 添加住宅信息 {% endblock title %}
+
+{% block stylesheets %}
+    {{ super() }}
+{% endblock stylesheets %}
+
+{% block content %}
+    <div class="right_col" role="main">
+        <div class="row">
+            <div class="col-md-12 col-sm-12 col-xs-12">
+                <div class="x_panel">
+                    <div class="x_title">
+                        <h2> 添加住宅 </h2>
+                        <div class="clearfix"></div>
+                    </div>
+                    <div class="x_content">
+                        {{ wtf.quick_form(form, button_map={'submit_button': success}) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock content %}
+
+{% block javascripts %}
+    {{ super() }}
+{% endblock javascripts %}
