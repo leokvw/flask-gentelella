@@ -102,4 +102,4 @@ def create_app(config, selenium=False):
             else:
                 return jsonify({"errno": 1001, "errmsg": "识别失败"})
 
-        return app
+    return app
