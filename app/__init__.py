@@ -12,6 +12,12 @@ from flask_sqlalchemy import SQLAlchemy
 known_image = face_recognition.load_image_file("./upload/me.jpg")
 my_face_encoding = face_recognition.face_encodings(known_image)[0]
 
+
+# 毫秒级时间戳，基于lambda
+def now_time():
+    return int(round(time.time() * 1000))
+
+
 db = SQLAlchemy()
 login_manager = LoginManager()
 bootstrap = Bootstrap()
@@ -92,14 +98,20 @@ def create_app(config, selenium=False):
     def api_upload():
         f = request.files['file']
         if f and f.filename.rsplit('.', 1)[1] == 'jpg':  # 判断是否是允许上传的文件类型
-            print(time.strftime("%Y%m%d-%H%M%S") + '开始识别')
             image = face_recognition.load_image_file(f)
+            print('{}:loaded image'.format(now_time()))
+
             unknown_face_encoding = face_recognition.face_encodings(image)[0]
+            print('{}:encoded face'.format(now_time()))
+
             results = face_recognition.compare_faces([my_face_encoding], unknown_face_encoding)
-            print(time.strftime("%Y%m%d-%H%M%S") + '识别结束')
+            print('{}:compared faces'.format(now_time()))
+
             if results[0]:
-                return jsonify({"errno": 0, "errmsg": "识别成功"})
+                print("匹配！")
+                return jsonify({"errno": 0, "errmsg": "识别成功", "resident": "侯先生"})
             else:
-                return jsonify({"errno": 1001, "errmsg": "识别失败"})
+                print("不匹配")
+                return jsonify({"errno": 1001, "errmsg": "识别失败，该人脸未注册"})
 
     return app
