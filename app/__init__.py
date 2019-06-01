@@ -1,10 +1,16 @@
-from flask import Flask, url_for
+import base64
+import os
+import random
+import time
+
+from flask import Flask, url_for, request, jsonify
 from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
 from flask_bootstrap import Bootstrap
 from importlib import import_module
 from logging import basicConfig, DEBUG, getLogger, StreamHandler
-from os import path
+
+UPLOAD_FOLDER = 'upload'
 
 db = SQLAlchemy()
 login_manager = LoginManager()
@@ -65,7 +71,7 @@ def apply_themes(app):
                 app.config.get('DEFAULT_THEME', None)
             if themename:
                 theme_file = "{}/{}".format(themename, values.get('filename', ''))
-                if path.isfile(path.join(app.static_folder, theme_file)):
+                if os.path.isfile(os.path.join(app.static_folder, theme_file)):
                     values['filename'] = theme_file
         return url_for(endpoint, **values)
 
@@ -75,9 +81,27 @@ def create_app(config, selenium=False):
     app.config.from_object(config)
     if selenium:
         app.config['LOGIN_DISABLED'] = True
+    app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
     register_extensions(app)
     register_blueprints(app)
     configure_database(app)
     configure_logs(app)
     apply_themes(app)
+
+    # 上传文件 API
+    @app.route('/api/upload', methods=['POST'], strict_slashes=False)
+    def api_upload():
+        file_dir = app.config['UPLOAD_FOLDER']
+        if not os.path.exists(file_dir):
+            os.makedirs(file_dir)
+        f = request.files['file']  # 从表单的file字段获取文件，myfile为该表单的name值
+        if f and f.filename.rsplit('.', 1)[1] == 'jpg':  # 判断是否是允许上传的文件类型
+            timestamp = time.strftime("%Y%m%d-%H%M%S")
+            random_number = random.randint(0, 20)  # 生成的随机整数n，其中0<=n<=100
+            new_filename = str(timestamp) + str(random_number) + '.jpg'  # 修改了上传的文件名
+            f.save(os.path.join(file_dir, new_filename))  # 保存文件到upload目录
+            print(new_filename)
+            return jsonify({"errno": 0, "errmsg": "上传成功"})
+        else:
+            return jsonify({"errno": 1001, "errmsg": "上传失败"})
     return app
