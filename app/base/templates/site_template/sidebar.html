@@ -9,11 +9,11 @@
     <div class="profile clearfix">
         <div class="profile_pic">
             <!-- TODO 加入动态 profile_img -->
-            <img src="/static/images/img.jpg" alt="..." class="img-circle profile_img">
+            <img src="/static/images/img.png" alt="..." class="img-circle profile_img">
         </div>
         <div class="profile_info">
             <span>欢迎,</span>
-            <h2> {{ current_user.username }} </h2>
+            <h2> {{ current_user.name }} </h2>
         </div>
     </div>
     <!-- /menu profile quick info -->
@@ -46,7 +46,7 @@
                 </li>
                 <li><a><i class="fa fa-cogs"></i> 小区管理 <span class="fa fa-chevron-down"></span></a>
                     <ul class="nav child_menu">
-                        <li><a href="/tables/person"> 人员管理 </a></li>
+                        <li><a href="/tables/admin"> 人员管理 </a></li>
                         <li><a href="/tables/building"> 住宅管理</a></li>
                     </ul>
                 </li>
