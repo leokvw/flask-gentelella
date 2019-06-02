@@ -1,5 +1,10 @@
+import time
+import numpy as np
+
+import face_recognition
 from bcrypt import checkpw
-from flask import jsonify, render_template, redirect, request, url_for
+from flask import render_template, redirect, url_for
+from flask import request, jsonify
 from flask_login import (
     current_user,
     login_required,
@@ -10,7 +15,8 @@ from flask_login import (
 from app import db, login_manager
 from app.base import blueprint
 from app.base.forms import LoginForm, CreateAccountForm
-from app.base.models import User
+from app.base.models import Admin, Resident
+from app.base.models import Capture, Access
 
 
 @blueprint.route('/')
@@ -34,6 +40,7 @@ def route_fixed_template(template):
 def route_errors(error):
     return render_template('errors/page_{}.html'.format(error))
 
+
 ## Login & Registration
 
 
@@ -42,11 +49,11 @@ def login():
     login_form = LoginForm(request.form)
     create_account_form = CreateAccountForm(request.form)
     if 'login' in request.form:
-        username = request.form['username']
+        id = request.form['id']
         password = request.form['password']
-        user = User.query.filter_by(username=username).first()
-        if user and checkpw(password.encode('utf8'), user.password):
-            login_user(user)
+        admin = Admin.query.filter_by(id=id).first()
+        if admin and checkpw(password.encode('utf8'), admin.password):
+            login_user(admin)
             return redirect(url_for('base_blueprint.route_default'))
         return render_template('errors/page_403.html')
     if not current_user.is_authenticated:
@@ -60,7 +67,7 @@ def login():
 
 @blueprint.route('/create_user', methods=['POST'])
 def create_user():
-    user = User(**request.form)
+    user = Admin(**request.form)
     db.session.add(user)
     db.session.commit()
     return jsonify('success')
@@ -80,6 +87,52 @@ def shutdown():
         raise RuntimeError('Not running with the Werkzeug Server')
     func()
     return 'Server shutting down...'
+
+
+# 毫秒级时间戳，基于lambda
+def now_time():
+    return int(round(time.time() * 1000))
+
+
+# 上传文件 API
+@blueprint.route('/api/upload', methods=['POST'], strict_slashes=False)
+def api_upload():
+    f = request.files['file']
+    building = request.values.get("building")
+    neighbor = Resident.query.filter_by(building=building).all()
+    resident_name = [x.name for x in neighbor]
+    known_face_encoding = [x.face_encoding for x in neighbor]
+    if f and f.filename.rsplit('.', 1)[1] == 'jpg':  # 判断是否是允许上传的文件类型
+        image = face_recognition.load_image_file(f)
+        print('{}:loaded image'.format(now_time()))
+        landmarks = face_recognition.face_landmarks(image)
+        if landmarks:
+            unknown_face_encoding = face_recognition.face_encodings(image)[0]
+            print('{}:encoded face'.format(now_time()))
+
+            results = face_recognition.compare_faces(known_face_encoding, unknown_face_encoding)
+            print('{}:compared faces'.format(now_time()))
+
+            for name, result in zip(resident_name, results):
+                if result:
+                    print("匹配！")
+                    capture = Capture(on_record=True, building=building)
+                    db.session.add(capture)
+                    access = Access(name=name, building=building)
+                    db.session.add(access)
+                    db.session.commit()
+                    return jsonify({"errno": 0, "errmsg": "识别成功", "resident": name})
+                else:
+                    print("不匹配")
+                    capture = Capture(on_record=False, building=building)
+                    db.session.add(capture)
+                    db.session.commit()
+                    return jsonify({"errno": 1001, "errmsg": "识别失败，该人脸未注册！"})
+        else:
+            print("未检测到人脸！")
+            return jsonify({"errno": 1, "errmsg": "未检测到人脸！"})
+    return "It's for api use!"
+
 
 # Errors
 

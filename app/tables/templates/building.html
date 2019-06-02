@@ -3,6 +3,16 @@
 
 {% block stylesheets %}
     {{ super() }}
+    <link href="{{ url_for('static', filename='vendors/datatables.net-bs/css/dataTables.bootstrap.min.css') }}"
+          rel="stylesheet">
+    <link href="{{ url_for('static', filename='vendors/datatables.net-buttons-bs/css/buttons.bootstrap.min.css') }}"
+          rel="stylesheet">
+    <link href="{{ url_for('static', filename='vendors/datatables.net-fixedheader-bs/css/fixedHeader.bootstrap.min.css') }}"
+          rel="stylesheet">
+    <link href="{{ url_for('static', filename='vendors/datatables.net-responsive-bs/css/responsive.bootstrap.min.css') }}"
+          rel="stylesheet">
+    <link href="{{ url_for('static', filename='vendors/datatables.net-scroller-bs/css/scroller.bootstrap.min.css') }}"
+          rel="stylesheet">
 {% endblock stylesheets %}
 
 {% block content %}
@@ -29,13 +39,19 @@
                                         <thead>
                                         <tr>
                                             <th>楼号</th>
-                                            <th>住户人数</th>
+                                            <th>名称</th>
+                                            <th>操作</th>
                                         </tr>
                                         </thead>
                                         <tbody>
                                         {% for building in result %}
                                             <tr>
                                                 <td>{{ building.number }}</td>
+                                                <td>{{ building.name }}</td>
+                                                <td>
+                                                    <a href="{{ url_for('tables_blueprint.render_building', number=building.number) }}">
+                                                        <button class="btn btn-xs">删除</button>
+                                                    </a></td>
                                             </tr>
                                         {% endfor %}
                                         </tbody>

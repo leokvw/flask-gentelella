@@ -10,6 +10,8 @@ __pycache__/
 *.db
 *.log
 
+# idea
+.idea/
 # venv
 env
 venv
@@ -17,7 +19,7 @@ venv
 # other
 .DS_Store
 
-# sphinx docs 
+# sphinx docs
 _build
 _static
 _templates

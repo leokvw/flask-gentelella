@@ -1,26 +1,19 @@
 import os
-import time
 from importlib import import_module
 from logging import basicConfig, DEBUG, getLogger, StreamHandler
 
-import face_recognition
-from flask import Flask, url_for, request, jsonify
+from flask import Flask, url_for
 from flask_bootstrap import Bootstrap
 from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
-
-known_image = face_recognition.load_image_file("./upload/me.jpg")
-my_face_encoding = face_recognition.face_encodings(known_image)[0]
-
-
-# 毫秒级时间戳，基于lambda
-def now_time():
-    return int(round(time.time() * 1000))
-
+from flask_uploads import UploadSet, IMAGES, configure_uploads
 
 db = SQLAlchemy()
 login_manager = LoginManager()
 bootstrap = Bootstrap()
+
+resident_images = UploadSet('RESIDENT', IMAGES)
+capture_images = UploadSet('CAPTURE', IMAGES)
 
 
 def register_extensions(app):
@@ -92,26 +85,8 @@ def create_app(config, selenium=False):
     configure_database(app)
     configure_logs(app)
     apply_themes(app)
-
-    # 上传文件 API
-    @app.route('/api/upload', methods=['POST'], strict_slashes=False)
-    def api_upload():
-        f = request.files['file']
-        if f and f.filename.rsplit('.', 1)[1] == 'jpg':  # 判断是否是允许上传的文件类型
-            image = face_recognition.load_image_file(f)
-            print('{}:loaded image'.format(now_time()))
-
-            unknown_face_encoding = face_recognition.face_encodings(image)[0]
-            print('{}:encoded face'.format(now_time()))
-
-            results = face_recognition.compare_faces([my_face_encoding], unknown_face_encoding)
-            print('{}:compared faces'.format(now_time()))
-
-            if results[0]:
-                print("匹配！")
-                return jsonify({"errno": 0, "errmsg": "识别成功", "resident": "侯先生"})
-            else:
-                print("不匹配")
-                return jsonify({"errno": 1001, "errmsg": "识别失败，该人脸未注册"})
-
+    app.config['UPLOADED_RESIDENT_DEST'] = os.getcwd() + '/resident'
+    app.config['UPLOADED_CAPTURE_DEST'] = os.getcwd() + '/upload'
+    configure_uploads(app, resident_images)
+    configure_uploads(app, capture_images)
     return app
