@@ -39,9 +39,11 @@ CREATE TABLE `visitor`
     `name`      VARCHAR(20)      NOT NULL COMMENT '访客姓名,最多不超过20个字符',
     `is_expire` BOOLEAN   DEFAULT 0 COMMENT '访客限定期限是否到期:0-仍在期限内,1-超过期限',
     `building`  TINYINT UNSIGNED NOT NULL COMMENT '住宅楼楼号,值范围为0-255',
+    `host`      BIGINT UNSIGNED NOT NULL COMMENT '访客信息添加人，如果是0则表示物业进入住宅楼',
     `create`    TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '访客信息创建时间,自动更新自动初始化',
     CONSTRAINT PK_visitor PRIMARY KEY (`id`),
-    CONSTRAINT FOREIGN KEY (building) REFERENCES `building` (`number`) ON UPDATE CASCADE ON DELETE CASCADE
+    CONSTRAINT FK_building FOREIGN KEY (building) REFERENCES `building` (`number`) ON UPDATE CASCADE ON DELETE CASCADE,
+    CONSTRAINT FK_host FOREIGN KEY (host) REFERENCES  `resident` (`id`) ON UPDATE CASCADE ON DELETE CASCADE
 ) DEFAULT CHARSET = UTF8MB4 COMMENT '访客信息';
 
 CREATE TABLE `capture`
@@ -58,9 +60,12 @@ CREATE TABLE `access`
 (
     `id`        SERIAL COMMENT '成功进出记录号,值范围为1-18446744073709551615',
     `direction` BOOLEAN    DEFAULT 0 COMMENT '进出方向,0-进入,1-出门,默认进门',
-    `type`      TINYINT(2) DEFAULT 0 COMMENT '0-住户,1-访客,2-未知,默认住户进出',
+    `type`      TINYINT(2) DEFAULT 0 COMMENT '0-住户,1-访客,2-手动开门,默认住户进出',
     `name`      VARCHAR(20) COMMENT '访客或者住户姓名,最多不超过20个字符',
     `building`  TINYINT UNSIGNED NOT NULL COMMENT '住宅楼楼号,值范围为0-255',
     `create`    TIMESTAMP  DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '进出记录时间,自动更新自动初始化',
     CONSTRAINT PK_access_record PRIMARY KEY (`id`)
 ) DEFAULT CHARSET = UTF8MB4 COMMENT '进出记录';
+
+
+insert into building value (14, '家和东苑14号楼');

@@ -53,8 +53,9 @@ class Visitor(db.Model):
 
     id = Column(Integer, autoincrement=True, primary_key=True)
     name = Column(String, nullable=False)
-    is_expire = Column(Boolean, nullable=False)
+    is_expire = Column(Boolean, nullable=False, default=False)
     building = Column(SmallInteger, ForeignKey(Building.number))
+    host = Column(BIGINT, ForeignKey(Resident.id))
     create = Column(TIMESTAMP)
 
 

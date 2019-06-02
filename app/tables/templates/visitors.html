@@ -46,6 +46,7 @@
                                             <th>名字</th>
                                             <th>是否过期</th>
                                             <th>目标住宅楼</th>
+                                            <th>邀请人</th>
                                             <th>创建时间</th>
                                         </tr>
                                         </thead>
@@ -56,6 +57,7 @@
                                                 <td>{{ visitor.name }}</td>
                                                 <td>{{ visitor.is_expire }}</td>
                                                 <td>{{ visitor.building }}</td>
+                                                <td>{{ visitor.host }}</td>
                                                 <td>{{ visitor.create }}</td>
                                             </tr>
                                         {% endfor %}

@@ -15,7 +15,7 @@ from flask_login import (
 from app import db, login_manager
 from app.base import blueprint
 from app.base.forms import LoginForm, CreateAccountForm
-from app.base.models import Admin, Resident
+from app.base.models import Admin, Resident, Visitor
 from app.base.models import Capture, Access
 
 
@@ -92,6 +92,30 @@ def shutdown():
 # 毫秒级时间戳，基于lambda
 def now_time():
     return int(round(time.time() * 1000))
+
+
+# 设置访客 API
+@blueprint.route('/api/add_visitor', methods=['POST'], strict_slashes=False)
+def api_add_visitor():
+    name = request.values.get('name')
+    building = request.values.get('building')
+    host_id = request.values.get('host_id')
+    visitor = Visitor(name=name, building=building, host=host_id)
+    db.session.add(visitor)
+    db.session.commit()
+    return jsonify({'id': visitor.id})
+
+
+# 上传文件 API
+@blueprint.route('/api/manual_open', methods=['POST'], strict_slashes=False)
+def api_manual_open():
+    id = request.values.get('id')
+    resident = Resident.query.filter_by(id=id).first()
+    access = Access(name=resident.name, building=resident.building, type=2)
+    db.session.add(access)
+    db.session.commit()
+    print('Someone inside!')
+    return jsonify({'result': 'success'})
 
 
 # 上传文件 API
