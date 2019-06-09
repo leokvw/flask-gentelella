@@ -1,3 +1,5 @@
+scikit-image
+face_recognition
 wtforms
 sqlalchemy
 bcrypt

@@ -1,5 +1,4 @@
 import time
-import numpy as np
 
 import face_recognition
 from bcrypt import checkpw
@@ -12,11 +11,15 @@ from flask_login import (
     logout_user
 )
 
+from skimage.exposure import adjust_gamma
+from app import retinex
 from app import db, login_manager
 from app.base import blueprint
 from app.base.forms import LoginForm, CreateAccountForm
 from app.base.models import Admin, Resident, Visitor
 from app.base.models import Capture, Access
+
+config = retinex.config
 
 
 @blueprint.route('/')
@@ -49,9 +52,9 @@ def login():
     login_form = LoginForm(request.form)
     create_account_form = CreateAccountForm(request.form)
     if 'login' in request.form:
-        id = request.form['id']
+        admin_id = request.form['id']
         password = request.form['password']
-        admin = Admin.query.filter_by(id=id).first()
+        admin = Admin.query.filter_by(id=admin_id).first()
         if admin and checkpw(password.encode('utf8'), admin.password):
             login_user(admin)
             return redirect(url_for('base_blueprint.route_default'))
@@ -106,16 +109,32 @@ def api_add_visitor():
     return jsonify({'id': visitor.id})
 
 
-# 上传文件 API
+# 手动开门 API
 @blueprint.route('/api/manual_open', methods=['POST'], strict_slashes=False)
 def api_manual_open():
-    id = request.values.get('id')
-    resident = Resident.query.filter_by(id=id).first()
+    resident_id = request.values.get('id')
+    resident = Resident.query.filter_by(id=resident_id).first()
     access = Access(name=resident.name, building=resident.building, type=2)
     db.session.add(access)
     db.session.commit()
     print('Someone inside!')
     return jsonify({'result': 'success'})
+
+
+# QRCode API
+@blueprint.route('/api/qrcode', methods=['POST'], strict_slashes=False)
+def api_qrcode():
+    visitor_id = request.values.get('visitor_id')
+    building = request.values.get('building')
+    print("{} {} 请求访问...".format(building, visitor_id))
+    visitor = Visitor.query.filter_by(building=building, name=visitor_id).first()
+    if visitor:
+        name = visitor.name
+        visitor.is_expire = True
+        db.session.commit()
+        print("{} {} 允许访问".format(building, name))
+        return jsonify({"errno": 1, "visitor": name})
+    return jsonify({"errno": 1001, "errmsg": "识别失败，该访客未注册！"})
 
 
 # 上传文件 API
@@ -128,18 +147,33 @@ def api_upload():
     known_face_encoding = [x.face_encoding for x in neighbor]
     if f and f.filename.rsplit('.', 1)[1] == 'jpg':  # 判断是否是允许上传的文件类型
         image = face_recognition.load_image_file(f)
-        print('{}:loaded image'.format(now_time()))
-        landmarks = face_recognition.face_landmarks(image)
-        if landmarks:
-            unknown_face_encoding = face_recognition.face_encodings(image)[0]
-            print('{}:encoded face'.format(now_time()))
+        print('楼号: {} {} 载入图像...'.format(building, now_time()))
+        # 伽马变换
+        image = adjust_gamma(image, 0.1)
+        # Retinex
+        # image = retinex.multi_scale_retinex_with_color_restoration(
+        #     image,
+        #     config['sigma_list'],
+        #     config['G'],
+        #     config['b'],
+        #     config['alpha'],
+        #     config['beta'],
+        #     config['low_clip'],
+        #     config['high_clip']
+        # )
+        print('楼号: {} {} 增强图像...'.format(building, now_time()))
+        unknown_face_encoding = face_recognition.face_encodings(image)
+        print('楼号: {} {} 检测人脸...'.format(building, now_time()))
+        if len(unknown_face_encoding) > 0:
+            # top, right, bottom, left = landmarks
+            print('楼号: {} {} 开始比对人脸...'.format(building, now_time()))
 
-            results = face_recognition.compare_faces(known_face_encoding, unknown_face_encoding)
-            print('{}:compared faces'.format(now_time()))
+            results = face_recognition.compare_faces(known_face_encoding, unknown_face_encoding[0])
+            print('楼号: {} {} 人脸比对完成'.format(building, now_time()))
 
             for name, result in zip(resident_name, results):
                 if result:
-                    print("匹配！")
+                    print("楼号: {} 匹配！".format(building))
                     capture = Capture(on_record=True, building=building)
                     db.session.add(capture)
                     access = Access(name=name, building=building)
@@ -147,13 +181,13 @@ def api_upload():
                     db.session.commit()
                     return jsonify({"errno": 0, "errmsg": "识别成功", "resident": name})
                 else:
-                    print("不匹配")
+                    print("楼号: {} 失败！".format(building))
                     capture = Capture(on_record=False, building=building)
                     db.session.add(capture)
                     db.session.commit()
                     return jsonify({"errno": 1001, "errmsg": "识别失败，该人脸未注册！"})
         else:
-            print("未检测到人脸！")
+            print("楼号: {} 未检测到人脸！".format(building))
             return jsonify({"errno": 1, "errmsg": "未检测到人脸！"})
     return "It's for api use!"
 
@@ -167,15 +201,15 @@ def unauthorized_handler():
 
 
 @blueprint.errorhandler(403)
-def access_forbidden(error):
+def access_forbidden():
     return render_template('errors/page_403.html'), 403
 
 
 @blueprint.errorhandler(404)
-def not_found_error(error):
+def not_found_error():
     return render_template('errors/page_404.html'), 404
 
 
 @blueprint.errorhandler(500)
-def internal_error(error):
+def internal_error():
     return render_template('errors/page_500.html'), 500
